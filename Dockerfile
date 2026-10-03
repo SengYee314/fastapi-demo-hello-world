@@ -1,17 +1,15 @@
-FROM python:3.12-slim as builder
-
+# Stage 1: Build stage
+FROM python:3.11-slim AS builder
 WORKDIR /app
-
-RUN pip install --no-cache-dir uv
-
-COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen
 
+# Stage 2: Final runtime stage
+FROM python:3.11-slim
+WORKDIR /app
 COPY --from=builder /app /app
 COPY . .
 
-EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # TODO 1
 # Container가 8000번 포트를 사용한다는 정보를 남기고,
