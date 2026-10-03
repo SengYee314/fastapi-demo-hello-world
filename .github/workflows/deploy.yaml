@@ -1,0 +1,47 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+            context: .
+            push: true
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-demo-hello-world:latest
+        
+      - name: SSH to EC2 and Deploy
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+            host: ${{ secrets.EC2_HOST}}
+            username: ${{secrets.EC2_USERNAME}}
+            key: ${{ secrets.EC2_SSH_KEY }}
+
+      # TODO 2
+      # 현재 Repository로 Docker Image를 빌드하고,
+      # <Docker Hub username>/fastapi-demo-hello-world:latest 로 push하세요.
+
+      # TODO 3
+      # EC2에 SSH로 접속한 뒤
+      # 1. Docker Hub의 latest Image를 pull하고
+      # 2. 기존 fastapi-demo Container를 제거하고
+      # 3. 새 Container를 EC2의 80번 포트와 Container의 8000번 포트를 연결해 실행하세요.
